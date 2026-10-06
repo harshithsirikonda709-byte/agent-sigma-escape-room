@@ -1,0 +1,424 @@
+g<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AGENT-Σ // Educational Escape Room & Probability Lab</title>
+    <meta name="description" content="An interactive educational escape room combining probability, statistics, and AI fundamentals with AGENT-Σ as your intelligent guide.">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="dark-theme">
+    <!-- Animated Math & Particle Canvas -->
+    <canvas id="math-canvas"></canvas>
+    
+    <!-- Background Overlay Effects -->
+    <div class="scanline-overlay" aria-hidden="true"></div>
+
+    <div class="app-container">
+
+        <!-- GLOBAL HEADER / HUD -->
+        <header id="global-hud" class="global-hud glass-card hidden">
+            <div class="hud-brand">
+                <span class="hud-logo-icon">Σ</span>
+                <div class="hud-brand-text">
+                    <span class="hud-title">AGENT-Σ</span>
+                    <span class="hud-subtitle">PROBABILITY ESCAPE ROOM</span>
+                </div>
+            </div>
+
+            <div class="hud-progress-center">
+                <div class="progress-bar-container">
+                    <div class="progress-label">
+                        <span>MISSION PROGRESS</span>
+                        <span id="hud-progress-pct">0%</span>
+                    </div>
+                    <div class="progress-track">
+                        <div id="hud-progress-fill" class="progress-fill" style="width: 0%;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hud-stats-right">
+                <div class="stat-badge xp-badge">
+                    <span class="badge-label">XP</span>
+                    <span id="hud-xp-val" class="badge-val">0</span>
+                </div>
+                <div class="stat-badge rooms-badge">
+                    <span class="badge-label">ROOMS</span>
+                    <span id="hud-rooms-val" class="badge-val">0/7</span>
+                </div>
+
+                <div class="hud-controls">
+                    <button id="btn-sound-toggle" class="btn-icon-hud" title="Toggle Sound" aria-label="Toggle Sound">
+                        <svg id="sound-icon-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                        </svg>
+                        <svg id="sound-icon-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="hidden">
+                            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                            <line x1="23" y1="9" x2="17" y2="15"></line>
+                            <line x1="17" y1="9" x2="23" y2="15"></line>
+                        </svg>
+                    </button>
+                    <button id="btn-hud-map" class="btn btn-sm btn-outline hidden" title="Return to Room Map">
+                        🗺️ MAP
+                    </button>
+                    <button id="btn-hud-settings" class="btn-icon-hud" title="Reset Progress" aria-label="Reset Progress">
+                        ⚙️
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- SCREEN 1: CINEMATIC LANDING SCREEN -->
+        <section id="landing-screen" class="screen active">
+            <div class="landing-card glass-card">
+                <div class="agent-status-badge">
+                    <span class="pulse-dot"></span>
+                    SIMULATION INTEGRITY: <span class="alert-val">DESTABILIZED</span>
+                </div>
+                
+                <div class="title-group">
+                    <h1 class="main-title">ESCAPE ROOM</h1>
+                    <h2 class="sub-title">AGENT-&Sigma;</h2>
+                </div>
+
+                <p class="tagline">The Random World is collapsing.</p>
+
+                <p class="story-text">
+                    Corrupted mathematical data has destabilized the simulation.
+                    Restore each system by solving the challenges inside the rooms.
+                </p>
+
+                <div class="concept-chips">
+                    <span class="chip">Expected Value E[X]</span>
+                    <span class="chip">Variance Var(X)</span>
+                    <span class="chip">PMF & PDF</span>
+                    <span class="chip">Std Deviation σ</span>
+                    <span class="chip">Random Variables</span>
+                    <span class="chip">AI Probability</span>
+                </div>
+
+                <div class="landing-actions">
+                    <button id="btn-start" class="btn btn-primary btn-glow btn-lg">
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                        </svg>
+                        INITIALIZE AGENT
+                    </button>
+                    <button id="btn-how-to-play" class="btn btn-secondary btn-lg">
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="16" x2="12" y2="12"></line>
+                            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                        </svg>
+                        HOW TO PLAY
+                    </button>
+                </div>
+
+                <div id="landing-stats" class="landing-stats hidden">
+                    <div class="stat-item">
+                        <span class="stat-label">Saved Progress:</span>
+                        <span id="landing-saved-rooms" class="stat-val">0 / 7 Rooms</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Total XP:</span>
+                        <span id="landing-saved-xp" class="stat-val">0 XP</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SCREEN 2: ROOM MAP -->
+        <section id="map-screen" class="screen hidden">
+            <div class="map-header text-center">
+                <span class="section-kicker">SIMULATION RESTORATION</span>
+                <h1 class="map-title">AGENT-&Sigma; MISSION MAP</h1>
+                <p class="map-subtitle">Restore the simulation one room at a time.</p>
+            </div>
+
+            <div id="rooms-grid" class="rooms-grid">
+                <!-- Dynamically rendered via JS -->
+            </div>
+        </section>
+
+        <!-- SCREEN 3: ROOM GAMEPLAY -->
+        <section id="game-screen" class="screen hidden">
+            <div id="room-scene" class="room-scene">
+                <div class="room-ambient room-ambient-one"></div>
+                <div class="room-ambient room-ambient-two"></div>
+                <div class="room-grid"></div>
+                <div class="room-hud room-hud-top">
+                    <span id="room-hud-brand">AGENT-Σ // SECTOR 01</span>
+                    <span id="room-hud-status"><i></i> LOCKED</span>
+                </div>
+                <div class="room-hud room-hud-bottom">
+                    <span>ENERGY CORE <b id="energy-hud">00%</b></span>
+                    <span>ATTEMPTS <b id="attempt-hud">0</b></span>
+                    <span>HINTS <b id="hint-hud">0</b></span>
+                </div>
+
+                <div class="room-architecture" aria-hidden="true">
+                    <div class="room-door">
+                        <div class="door-panel door-panel-left"></div>
+                        <div class="door-panel door-panel-right"></div>
+                        <div class="door-core"><span>Σ</span></div>
+                        <div class="door-glow"></div>
+                    </div>
+                    <div class="energy-core" id="energy-core">
+                        <div class="core-ring core-ring-one"></div>
+                        <div class="core-ring core-ring-two"></div>
+                        <div class="core-center"><span>AI</span></div>
+                        <div class="core-scan"></div>
+                    </div>
+                    <div class="console-stand">
+                        <div class="console-light"></div>
+                        <div class="console-screen"><span>PUZZLE</span><b>CONSOLE</b></div>
+                    </div>
+                </div>
+
+                <div class="energy-flow-layer" id="energy-flow-layer" aria-hidden="true">
+                    <span></span><span></span><span></span><span></span>
+                </div>
+                <div class="unlock-sequence" id="unlock-sequence" aria-live="polite">
+                    <span class="unlock-step" data-step="1">✓ PUZZLE SOLVED</span>
+                    <span class="unlock-step" data-step="2">ENERGY RESTORED <b>100%</b></span>
+                    <span class="unlock-step" data-step="3">AUTHENTICATING...</span>
+                    <span class="unlock-step" data-step="4">ACCESS GRANTED</span>
+                    <span class="unlock-step" data-step="5">UNLOCKED</span>
+                </div>
+            </div>
+
+            <div class="room-container">
+                
+                <!-- AGENT-Σ GUIDANCE PANEL -->
+                <aside class="agent-panel glass-card">
+                    <div class="agent-avatar-container">
+                        <div class="agent-avatar">
+                            <span class="agent-symbol">&Sigma;</span>
+                            <div class="agent-pulse-ring"></div>
+                        </div>
+                        <div class="agent-meta">
+                            <span class="agent-name">AGENT-&Sigma;</span>
+                            <span class="agent-role">INTELLIGENT GUIDE</span>
+                        </div>
+                    </div>
+                    <div class="agent-dialogue-box">
+                        <p id="agent-dialogue" class="agent-dialogue-text">
+                            "Let's restore this system. Read the prompt and apply probability principles carefully."
+                        </p>
+                    </div>
+                </aside>
+
+                <!-- MAIN QUESTION AREA -->
+                <main class="question-main-area">
+                    <!-- QUESTION CARD -->
+                    <div class="question-card glass-card">
+                        <div class="question-header">
+                            <div class="question-meta">
+                                <span id="q-room-title" class="q-room-title">ROOM 01 &mdash; PROBABILITY CORE</span>
+                                <span id="q-number-tag" class="q-number-tag">QUESTION 1 / 5</span>
+                            </div>
+                            <span id="q-topic-badge" class="topic-badge">EXPECTED VALUE</span>
+                        </div>
+
+                        <div class="question-content">
+                            <p id="q-text" class="q-text">
+                                Question text loading...
+                            </p>
+                            <div id="q-visual-area" class="q-visual-area hidden">
+                                <!-- Dynamic tables / formulas if needed -->
+                            </div>
+                        </div>
+
+                        <!-- ANSWER OPTIONS GRID -->
+                        <div id="options-grid" class="options-grid">
+                            <!-- Answer cards rendered dynamically -->
+                        </div>
+
+                        <!-- FEEDBACK & HINT AREA -->
+                        <div id="feedback-panel" class="feedback-panel hidden">
+                            <!-- Dynamic feedback status, hint 1, hint 2, or worked explanation -->
+                        </div>
+
+                        <!-- ACTION BAR -->
+                        <div class="question-footer">
+                            <button id="btn-next-q" class="btn btn-primary btn-glow hidden">
+                                CONTINUE
+                                <svg class="btn-icon-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                    <polyline points="12 5 19 12 12 19"></polyline>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </section>
+
+        <!-- ROOM COMPLETION MODAL -->
+        <div id="completion-modal" class="modal-overlay hidden" role="dialog" aria-modal="true">
+            <div class="completion-card glass-card">
+                <div class="completion-icon-wrapper">
+                    <div class="completion-checkmark">✓</div>
+                </div>
+                <span class="completion-badge">SYSTEM RESTORED</span>
+                <h2 id="completion-title" class="completion-title">ROOM 01 COMPLETED</h2>
+                <p id="completion-subtitle" class="completion-subtitle">The Probability Core is now fully online and stable.</p>
+
+                <div class="completion-stats-grid">
+                    <div class="c-stat-box">
+                        <span class="c-stat-label">XP EARNED</span>
+                        <span id="c-xp-earned" class="c-stat-val">+100 XP</span>
+                    </div>
+                    <div class="c-stat-box">
+                        <span class="c-stat-label">ACCURACY</span>
+                        <span id="c-accuracy" class="c-stat-val">100%</span>
+                    </div>
+                    <div class="c-stat-box">
+                        <span class="c-stat-label">ATTEMPTS</span>
+                        <span id="c-attempts" class="c-stat-val">5</span>
+                    </div>
+                    <div class="c-stat-box">
+                        <span class="c-stat-label">HINTS REVEALED</span>
+                        <span id="c-hints" class="c-stat-val">0</span>
+                    </div>
+                </div>
+
+                <div id="unlock-notification" class="unlock-notification">
+                    <span class="unlock-icon">🔓</span>
+                    <span id="unlock-text" class="unlock-text">ROOM 02 UNLOCKED</span>
+                </div>
+
+                <div class="modal-actions">
+                    <button id="btn-continue-next-room" class="btn btn-success btn-glow btn-lg">
+                        CONTINUE TO NEXT ROOM
+                    </button>
+                    <button id="btn-return-map" class="btn btn-secondary btn-lg">
+                        RETURN TO MAP
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- FINAL VICTORY SCREEN -->
+        <section id="victory-screen" class="screen hidden">
+            <div class="victory-card glass-card">
+                <div class="trophy-glow">
+                    <svg class="trophy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
+                        <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
+                        <path d="M4 22h16"></path>
+                        <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path>
+                        <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path>
+                        <path d="M18 2H6v7a6 6 0 0 0 12 0V2z"></path>
+                    </svg>
+                </div>
+                <span class="victory-badge">SIMULATION FULLY RESTORED</span>
+                <h1 class="victory-title">MISSION ACCOMPLISHED</h1>
+                <p class="victory-sub">All 7 probability chambers are restored. The AGENT-Σ Core is operating at maximum stability.</p>
+
+                <div class="victory-stats-grid">
+                    <div class="v-stat-card">
+                        <span class="v-stat-label">TOTAL XP</span>
+                        <span id="v-final-xp" class="v-stat-val">700</span>
+                    </div>
+                    <div class="v-stat-card">
+                        <span class="v-stat-label">ROOMS COMPLETED</span>
+                        <span id="v-rooms-count" class="v-stat-val">7 / 7</span>
+                    </div>
+                    <div class="v-stat-card">
+                        <span class="v-stat-label">ACCURACY RATE</span>
+                        <span id="v-accuracy-rate" class="v-stat-val">95%</span>
+                    </div>
+                    <div class="v-stat-card">
+                        <span class="v-stat-label">TOTAL ATTEMPTS</span>
+                        <span id="v-total-attempts" class="v-stat-val">35</span>
+                    </div>
+                </div>
+
+                <div class="mastered-concepts">
+                    <h3>PROBABILITY & AI CONCEPTS MASTERED</h3>
+                    <div class="concepts-chips-grid">
+                        <span class="concept-tag">✓ Discrete Expected Value E[X]</span>
+                        <span class="concept-tag">✓ Variance Var(X) = E[X²] - (E[X])²</span>
+                        <span class="concept-tag">✓ Standard Deviation σ</span>
+                        <span class="concept-tag">✓ Probability Density f(x) Integration</span>
+                        <span class="concept-tag">✓ Bernoulli & Binomial Variables</span>
+                        <span class="concept-tag">✓ Bayes' Theorem in AI Systems</span>
+                        <span class="concept-tag">✓ Markov State Transitions</span>
+                    </div>
+                </div>
+
+                <div class="victory-actions">
+                    <button id="btn-restart-mission" class="btn btn-primary btn-glow btn-lg">
+                        RESTART MISSION
+                    </button>
+                    <button id="btn-victory-map" class="btn btn-secondary btn-lg">
+                        VIEW MISSION MAP
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- HOW TO PLAY MODAL -->
+        <div id="how-to-play-modal" class="modal-overlay hidden" role="dialog" aria-labelledby="modal-title" aria-modal="true">
+            <div class="modal-card glass-card">
+                <div class="modal-header">
+                    <h3 id="modal-title" class="modal-title">
+                        <svg class="modal-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                        </svg>
+                        AGENT FIELD MANUAL &mdash; HOW TO PLAY
+                    </h3>
+                    <button id="btn-close-modal" class="btn-close" aria-label="Close modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="rule-item">
+                        <div class="rule-num">1</div>
+                        <div class="rule-text"><strong>Select an Available Room:</strong> Begin with Room 01 (Probability Core) on your Mission Map.</div>
+                    </div>
+                    <div class="rule-item">
+                        <div class="rule-num">2</div>
+                        <div class="rule-text"><strong>Solve 5 Questions Per Room:</strong> Read each question and select the correct option card.</div>
+                    </div>
+                    <div class="rule-item">
+                        <div class="rule-num">3</div>
+                        <div class="rule-text"><strong>Progressive Intelligent Hints:</strong> If you get a question wrong, AGENT-Σ will give you Hint 1. Wrong again? You'll get Hint 2. Still wrong? A full worked explanation is provided so you learn and try again!</div>
+                    </div>
+                    <div class="rule-item">
+                        <div class="rule-num">4</div>
+                        <div class="rule-text"><strong>Earn XP & Unlock Rooms:</strong> Completing all 5 questions in a room restores that system and unlocks the next chamber!</div>
+                    </div>
+                    <div class="rule-item">
+                        <div class="rule-num">5</div>
+                        <div class="rule-text"><strong>Conquer the AGENT-Σ Core:</strong> Complete all 7 rooms to fully stabilize the simulation!</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="btn-modal-close-action" class="btn btn-primary">START MISSION</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONFIRM RESET MODAL -->
+        <div id="reset-modal" class="modal-overlay hidden" role="dialog" aria-modal="true">
+            <div class="modal-card glass-card reset-card text-center">
+                <div class="warning-icon">⚠️</div>
+                <h3 class="modal-title">RESET MISSION PROGRESS?</h3>
+                <p class="modal-desc">
+                    This will clear all saved room completions, XP, and question progress. This action cannot be undone.
+                </p>
+                <div class="modal-actions justify-center">
+                    <button id="btn-confirm-reset" class="btn btn-danger">RESET EVERYTHING</button>
+                    <button id="btn-cancel-reset" class="btn btn-secondary">CANCEL</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- MAIN APP SCRIPT -->
+    <script src="js/app.js"></script>
+</body>
+</html>
